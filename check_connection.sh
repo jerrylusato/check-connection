@@ -4,6 +4,9 @@
 OUTPUT_FILE="speedtest_results.csv"
 DURATION_INFINITE=true  # Default to infinite mode
 
+# Expected CSV header
+EXPECTED_HEADER="ISP,Timestamp,Server,Idle_Latency(ms),Latency_Jitter(ms),Latency_Low(ms),Latency_High(ms),Download(Mbps),Upload(Mbps),Packet_Loss(%),Result_URL"
+
 # Help function
 show_help() {
     echo "Usage: $0 [-t <duration_in_minutes>] [-o <output_file>]"
@@ -41,13 +44,23 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
-# Create CSV header if file doesn't exist
-if [[ ! -f $OUTPUT_FILE ]]; then
-    echo "ISP,Timestamp,Server,Idle_Latency(ms),Latency_Jitter(ms),Latency_Low(ms),Latency_High(ms),Download(Mbps),Upload(Mbps),Packet_Loss(%),Result_URL" > $OUTPUT_FILE
-fi
-
 echo "Starting internet speed tests..."
 echo "Results will be saved to: $OUTPUT_FILE"
+
+# Validate or create CSV file
+if [[ -f $OUTPUT_FILE ]]; then
+    # Check if the header matches
+    EXISTING_HEADER=$(head -n 1 "$OUTPUT_FILE")
+    if [[ "$EXISTING_HEADER" != "$EXPECTED_HEADER" ]]; then
+        echo "Warning: The existing CSV file has incorrect or missing headers. Overwriting the file."
+        echo "$EXPECTED_HEADER" > "$OUTPUT_FILE"  # Overwrite with correct header
+    fi
+else
+    # Create file with correct header
+    echo "$EXPECTED_HEADER" > "$OUTPUT_FILE"
+fi
+
+### TODO: Show time remaining instead after logging / before starting the test
 if [[ $DURATION_INFINITE == true ]]; then
     echo "Running indefinitely. Press Ctrl+C to stop."
 else
@@ -64,7 +77,7 @@ fi
 while true; do
     # Check if timed mode has ended
     if [[ $DURATION_INFINITE == false && $(date +%s) -ge $END_TIME ]]; then
-        echo "Time limit reached. Exiting..."
+        echo "\nTime limit reached. Exiting..."
         break
     fi
 
