@@ -77,13 +77,15 @@ fi
 while true; do
     # Check if timed mode has ended
     if [[ $DURATION_INFINITE == false && $(date +%s) -ge $END_TIME ]]; then
-        echo "\nTime limit reached. Exiting..."
+        echo ""
+        echo "Time limit reached. Exiting..."
         break
     fi
 
     # Get current timestamp
     TIMESTAMP=$(date "+%Y-%m-%d %H:%M:%S")
-    echo "\nTesting at $TIMESTAMP..."
+    echo ""
+    echo "Testing at $TIMESTAMP..."
 
     # Run speedtest and parse results
     RESULTS=$(speedtest --format=json)
@@ -110,6 +112,6 @@ while true; do
     # Append results to CSV
     echo "$ISP,\"$TIMESTAMP\",\"$SERVER\",$IDLE_LATENCY,$LATENCY_JITTER,$LATENCY_LOW,$LATENCY_HIGH,$DOWNLOAD,$UPLOAD,$PACKET_LOSS,$RESULT_URL" >> $OUTPUT_FILE
 
-    # Wait for the next second
-    sleep 1
+    # Wait for 5 seconds
+    sleep 5
 done
